@@ -1,0 +1,88 @@
+const prompt = require('prompt-sync')();
+
+// Função para realizar o método de Gauss
+function gauss(matrix) {
+  const n = matrix.length;
+
+  // Eliminação para a forma escalonada
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
+    for (let j = i + 1; j < n; j++) {
+      if (Math.abs(matrix[j][i]) > Math.abs(matrix[maxRow][i])) {
+        maxRow = j;
+      }
+    }
+
+    [matrix[i], matrix[maxRow]] = [matrix[maxRow], matrix[i]];
+
+    for (let k = i + 1; k < n; k++) {
+      const factor = -matrix[k][i] / matrix[i][i];
+      for (let j = i; j < n + 1; j++) {
+        if (i === j) {
+          matrix[k][j] = 0;
+        } else {
+          matrix[k][j] += factor * matrix[i][j];
+        }
+      }
+    }
+  }
+
+  // Retrosubstituição
+  const solution = new Array(n);
+  for (let i = n - 1; i >= 0; i--) {
+    solution[i] = matrix[i][n] / matrix[i][i];
+    for (let k = i - 1; k >= 0; k--) {
+      matrix[k][n] -= matrix[k][i] * solution[i];
+    }
+  }
+
+  return solution;
+}
+
+// Função para realizar o método de Gauss-Seidel
+function gaussSeidel(matrix, initialGuess, tolerance, maxIterations) {
+  const n = matrix.length;
+  const solution = initialGuess.slice();
+  let iterations = 0;
+  let error = tolerance + 1;
+
+  while (error > tolerance && iterations < maxIterations) {
+    error = 0;
+    for (let i = 0; i < n; i++) {
+      const oldValue = solution[i];
+      let sum = 0;
+      for (let j = 0; j < n; j++) {
+        if (j !== i) {
+          sum += matrix[i][j] * solution[j];
+        }
+      }
+      solution[i] = (matrix[i][n] - sum) / matrix[i][i];
+      error = Math.max(error, Math.abs(solution[i] - oldValue));
+    }
+    iterations++;
+  }
+
+  return { solution, iterations, error };
+}
+
+// Função para ler uma matriz do usuário
+function readMatrix(size) {
+  const matrix = [];
+  console.log('Entre com os elementos da matriz (separados por espaço):');
+
+  for (let i = 0; i < size; i++) {
+    const row = prompt(`Linha ${i + 1}: `).split(' ').map(Number);
+    matrix.push(row);
+  }
+
+  console.log('Entre com os valores do vetor solução (separados por espaço):');
+  const solution = prompt().split(' ').map(Number);
+
+  for (let i = 0; i < size; i++) {
+    matrix[i].push(solution[i]);
+  }
+
+  return matrix;
+}
+
+// Função principal
